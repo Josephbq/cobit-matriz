@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Programa de Selección y Tabla</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.4.1/jspdf.debug.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/2.3.4/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
+<style>
+    input[type="checkbox"]:checked + label {
+  color: red; /* Cambia el color del texto a rojo */
+}
+</style>
+</head>
+<body class="dark-theme-variables">
+    <h1>DOMINIOS COBIT</h1>
+    <div class="container">
+        
+        <div class="checkboxes">
+            <input type="checkbox" id="checkbox1" name="checkbox1">
+            <label for="checkbox1">Planear y Organizar (PO)</label><br>
+
+            <input type="checkbox" id="checkbox2" name="checkbox2">
+            <label for="checkbox2">Adquirir e Implementar (AI)</label><br>
+
+            <input type="checkbox" id="checkbox3" name="checkbox3">
+            <label for="checkbox3">Entregar y dar Soporte (ES)</label><br>
+
+            <input type="checkbox" id="checkbox4" name="checkbox4">
+            <label for="checkbox4">Monitorear y Evaluar (ME)</label>
+        </div>
+
+        <div id="dynamicCheckboxes" style="display: none;">
+            <h2>subdominios</h2>
+        </div>
+        <div class="right">
+            <div class="sales-analytics">
+                <div class="item add-product">
+                    <div>
+                        <span class="services__button" onclick="exportToImage()">
+                            <h3>Exportar a imagen</h3>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <main>
+        <h1>TABLA DE SELECCIONES</h1>
+        <div class="recent-orders">
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>DOMINIO</th>
+                        <th>SUBDOMINIO</th>
+                        <th>CATALIZADORES</th>
+                        <th>CRITERIOS</th>
+                        <th>ENFOQUES DE GOBIERNO</th>
+                        <th>EVIDENCIAS</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTableBody"></tbody>
+            </table>
+        </div>
+    </main>
+    <script>
+
+        function exportToImage() {
+            const table = document.getElementById('resultsTable');
+            html2canvas(table).then((canvas) => {
+                const imgData = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = imgData;
+                link.download = 'tabla.png';
+                link.click();
+            });
+        }
+
+        const options = {
+            checkbox1: ["PO1 Definir un plan estratégico de TI", "PO2 Definir la arquitectura de la información", "PO3 Determinar la dirección tecnológica", "PO4 Definir los procesos, organización y relaciones de TI", "PO5 Administrar la inversión de TI", "PO6 Comunicar las aspiraciones y la dirección de la gerencia", "PO7 Administrar recursos humanos de TI", "PO8 Administrar la calidad", "PO9 Evaluar y administrar los riesgos de TI", "PO10 Administrar proyectos"],
+            checkbox2: ["AI1 Identificar soluciones automatizadas", "AI2 Adquirir y mantener software aplicativo", "AI3 Adquirir y mantener infraestructura tecnológica", "AI4 Facilitar la operación y el uso", "AI5 Adquirir recursos de TI", "AI6 Administrar cambios", "AI7 Instalar y acreditar soluciones y cambios"],
+            checkbox3: ["DS1 Definir y administrar los niveles de acceso", "DS2 Administrar los servicios de terceros", "DS3 Administrar el desempeño y la capacidad", "DS4 Garantizar la continuidad del servicio", "DS5 Garantizar la seguridad de los sistemas", "DS6 Identificar y asignar costos", "DS7 Educar y entrenar a los usuarios", "DS8 Administrar la mesa de servicio y los incidentes", "DS9 Administrar la configuración", "DS10 Administrar los problemas", "DS11 Administrar los datos", "DS12 Administrar el ambiente físico", "DS13 Administrar las operaciones"],
+            checkbox4: ["ME1 Monitorear y evaluar el desempeño y rendimiento", "ME2 Monitorear y evaluar el control interno", "ME3 Garantizar el cumplimiento regulatorio", "ME4 Proporcionar gobierno de TI y aseguramiento"]
+        };
+
+        const optionsData = {
+            "checkbox1-option0": {
+                additionalData1: ["Principios/politicas", "Estructura Organizativa", "Cultura/Etica/Comportamiento", "Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad"],
+                additionalData3: ["Alineacion estrategica"],
+                additionalData4: ["Documentacion del plan estrategico de TI", "Informes de analisis de brechas", "Documentos de politicas y estandares de seguridad"]
+            },
+            "checkbox1-option1": {
+                additionalData1: ["Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Eficiencia", "Integridad"],
+                additionalData3: ["Alineacion estrategica", "Administracion del riesgo"],
+                additionalData4: ["Documentos de diseño de la arquitectura de seguridad", "Especificaciones tecnicas de seguridad", "Evaluaciones y pruebas de la arquitectura"]
+            },
+            "checkbox1-option2": {
+                additionalData1: ["Principios/politicas", "Cultura/Etica/Comportamiento", "Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Administracion del riesgo"],
+                additionalData4: ["Documentos de la direccion tecnologica en relacion con la seguridad", "Informes de evaluaciones de riesgos", "Documentos que evidencien la implementacion de controles y estandares de seguridad"]
+            },
+            "checkbox1-option3": {
+                additionalData1: ["Procesos", "Estructura Organizativa", "Informacion"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Administracion del reisgo", "Administracion de los recursos"],
+                additionalData4: ["Documentos de politicas y procedimientos de seguridad", "Organigramas y descripciones de roles relacionados con seguridad", "Evidencias de acuerdos y contratos con proveedores"]
+            },
+            "checkbox1-option4": {
+                additionalData1: ["Principios/politicas", "Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Entrega de valor"],
+                additionalData4: ["Documentos de presupuesto y planificacion financiera", "Registro de proyectos y programas de seguridad implementados", "Informes de evaluacion del retorno de la inversion(ROI)"]
+            },
+            "checkbox1-option5": {
+                additionalData1: ["Principios/politicas", "Informacion"],
+                additionalData2: ["Efectividad"],
+                additionalData3: ["Alineacion estrategica", "Administracion del riesgo"],
+                additionalData4: ["Documentos de comunicacion interna y externa sobre politicas y directrices", "Informes de capacitacion y concienciacion", "Registro de comunicaciones sobre incidentes de seguridad"]
+            },
+            "checkbox1-option6": {
+                additionalData1: ["Cultura/Etica/Comportamiento", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Alineacion estrategica", "Administracion del riesgo"],
+                additionalData4: ["Documentacion de perfiles de seguridad", "Registro de capacitaciones en seguridad de TI", "Evaluaciones de desempeño y registros"]
+            },
+            "checkbox1-option7": {
+                additionalData1: ["Principios/politicas", "Procesos", "Estructura Organizativa", "Cultura/Etica/Comportamiento", "Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Alineacion estrategica"],
+                additionalData4: ["Documentos de politicas y procedimientos de gest de calidad", "informes de auditorias EXT/INT", "Evidencias de acciones correctivas y preventivas"]
+            },
+            "checkbox1-option8": {
+                additionalData1: ["Cultura/Etica/Comportamiento", "Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Confidencialidad", "Integridad", "Disponibilidad"],
+                additionalData3: ["Alineacion estrategica", "Administracion del riesgo"],
+                additionalData4: ["Documentos de evaluacion de riesgos de seguridad", "Evidencia de la implementacion de controles de seguridad", "Informes de seguimiento de incidentes"]
+            },
+            "checkbox1-option9": {
+                additionalData1: ["Procesos", "Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Alineacion estrategica"],
+                additionalData4: ["Documentacion de proyectos de seguridad de TI", "Informes de seguimiento de avance y cumplimiento", "Documentos de cierre de proyectos"]
+            },
+            "checkbox2-option0": {
+                additionalData1: ["Procesos", "Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad"],
+                additionalData3: ["Alineacion estrategica", "Entrega de valor"],
+                additionalData4: ["Documentos de identificacion de soluciones automatizadas", "Evaluaciones de riesgo de seguridad", "Documentacion de los criterios de seleccion utilizados"]
+            },
+            "checkbox2-option1": {
+                additionalData1: ["Procesos", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Alineacion estrategica", "Entrega de valor"],
+                additionalData4: ["Contratos y acuerdos de licencia de software", "Documentos de evaluaciones de seguridad", "Politicas y procedimientos de mantenimiento de SW"]
+            },
+            "checkbox2-option2": {
+                additionalData1: ["Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Eficiencia"],
+                additionalData3: ["Administracion del riesgo"],
+                additionalData4: ["Evidencia de evaluaciones realizadas", "Documentos de configuracion y gestion", "Informes de pruebas de seguridad realizadas"]
+            },
+            "checkbox2-option3": {
+                additionalData1: ["Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Entrega de valor"],
+                additionalData4: ["Documentacion de politicas y procedimientos", "Registro de capacitaciones", "Informes de pruebas"]
+            },
+            "checkbox2-option4": {
+                additionalData1: ["Procesos", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Eficiencia"],
+                additionalData3: ["Administracion del riesgo"],
+                additionalData4: ["Contratos y acuerdos con proveedores", "Documentos de evaluacion y seleccion", "Evidencia de revisiones de seguridad"]
+            },
+            "checkbox2-option5": {
+                additionalData1: ["Cultura/Etica/Comportamiento", "Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia", "Integridad", "Disponibilidad"],
+                additionalData3: ["Entrega de valor"],
+                additionalData4: ["Procedimientos de gestion de cambios", "Registros de aprobaciones", "Informes de pruebas realizadas"]
+            },
+            "checkbox2-option6": {
+                additionalData1: ["Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad"],
+                additionalData3: ["Entrega de valor"],
+                additionalData4: ["Documentacion de procedimientos de instalacion y configuracion", "Registro de configuraciones", "Informes de pruebas de seguridad"]
+            },
+            "checkbox3-option0": {
+                additionalData1: ["Procesos", "Informacion", "Servicios/Infraestructura/Aplicaciones"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Alineacion estrategica", "Entrega de valor", "Administracion del riesgo", "Medicion del desempeño"],
+                additionalData4: ["Politica y procedimientos", "Registros de auditoria de los cambios", "Informes de cumplimiento de los niveles"]
+            },
+            "checkbox3-option1": {
+                additionalData1: ["Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Entrega de valor", "Administracion de los recursos"],
+                additionalData4: ["Contratos y acuerdos con proveedores", "Evaluaciones de riesgo y controles aplicados", "Informes de seguimiento"]
+            },
+            "checkbox3-option2": {
+                additionalData1: ["Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Administracion del riesgo"],
+                additionalData4: ["Politicas y procedimientos", "Informes y registros de monitorizacion", "Planes de mejora"]
+            },
+            "checkbox3-option3": {
+                additionalData1: ["Procesos", "Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Disponibilidad"],
+                additionalData3: ["Entrega de valor", "Administracion de los recursos"],
+                additionalData4: ["Planes de continuidad del negocio", "Documentacion de pruebas y simulacros", "Informes de seguimiento"]
+            },
+            "checkbox3-option4": {
+                additionalData1: ["Cultura/Etica/Comportamiento", "Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Confidencialidad", "Integridad"],
+                additionalData3: ["Administracion de los recursos"],
+                additionalData4: ["Politicas y procedimientos de proteccion de sistemas", "Resultados de pruebas", "Informes de incidentes"]
+            },
+            "checkbox3-option5": {
+                additionalData1: ["Informacion", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Eficiencia", "Confiabilidad"],
+                additionalData3: ["Administracion del riesgo"],
+                additionalData4: ["Registro de costos asociados a los servicios", "Documentacion de asignacion de costos", "Informes de seguimiento y control"]
+            },
+            "checkbox3-option6": {
+                additionalData1: ["Cultura/Etica/Comportamiento", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad"],
+                additionalData3: ["Entrega de valor"],
+                additionalData4: ["Programas de capacitacion", "Registro de participacion en sesiones de formacion", "Informes de seguimiento"]
+            },
+            "checkbox3-option7": {
+                additionalData1: ["Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Entrega de valor"],
+                additionalData4: ["Procedimientos y registros", "Informes de incidentes reportados/investigados/resueltos", "Evaluaciones de la eficacia"]
+            },
+            "checkbox3-option8": {
+                additionalData1: ["Informacion", "Servicios/Infraestructura/Aplicaciones"],
+                additionalData2: ["Efectividad"],
+                additionalData3: ["Entrega de valor", "Administracion del riesgo"],
+                additionalData4: ["Registro de configuracion de los activos", "Politicas y procedimientos", "Informes de auditoria de integridad y cumplimiento"]
+            },
+            "checkbox3-option9": {
+                additionalData1: ["Servicios/Infraestructura/Aplicaciones"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Entrega de valor"],
+                additionalData4: ["Registros de problemas identificados", "Informes de seguimiento a los problemas", "Evaluaciones de la eficacia"]
+            },
+            "checkbox3-option10": {
+                additionalData1: ["Informacion", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Integridad", "Confiabilidad"],
+                additionalData3: ["Entrega de valor", "Administracion del riesgo", "Adminitracion de los recursos"],
+                additionalData4: ["Politicas y procedimientos", "Registro de clasificacion/almacenamiento/acceso seguro", "Informes de auditorias y cumplimientos de politicas"]
+            },
+            "checkbox3-option11": {
+                additionalData1: ["Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Integridad", "Disponibilidad"],
+                additionalData3: ["Administracion de los recursos"],
+                additionalData4: ["Controles de acceso fisico", "Registro de inspecciones", "Informes de cumplimiento"]
+            },
+            "checkbox3-option12": {
+                additionalData1: ["Procesos", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Administracion del riesgo"],
+                additionalData4: ["Procedimientos y registros", "Informes de incidentes y problemas", "Evaluaciones de la eficiencia y eficacia"]
+            },
+            "checkbox4-option0": {
+                additionalData1: ["Principios/politicas", "Procesos", "Estructura Organizativa", "Cultura/Etica/Comportamiento", "Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Medicion del riesgo"],
+                additionalData4: ["Informes de desempeño", "Resultados de evaluaciones periodicas", "Registros de seguimiento"]
+            },
+            "checkbox4-option1": {
+                additionalData1: ["Principios/politicas", "Procesos", "Estructura Organizativa", "Cultura/Etica/Comportamiento", "Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Entrega de valor", "Administracion de los recursos"],
+                additionalData4: ["Documentacion de los controles internos", "Resultados de pruebas", "Informes de seguimiento de las deficiencias"]
+            },
+            "checkbox4-option2": {
+                additionalData1: ["Principios/politicas", "Procesos", "Estructura Organizativa", "Cultura/Etica/Comportamiento", "Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Cumplimiento"],
+                additionalData3: ["Alineacion estrategica", "Administracion de los recursos"],
+                additionalData4: ["Documentacion de los requisitios regulatorios", "Resultados de evaluacioens", "Informes de auditoria y evidencias"]
+            },
+            "checkbox4-option3": {
+                additionalData1: ["Principios/politicas", "Procesos", "Estructura Organizativa", "Cultura/Etica/Comportamiento", "Informacion", "Servicios/Infraestructura/Aplicaciones", "Personas/Habilidades/Competencias"],
+                additionalData2: ["Efectividad", "Eficiencia"],
+                additionalData3: ["Alineacion estrategica", "Entrega de valor", "Administracion del riesgo", "Administracion de los recursos", "Medicion de desempeño"],
+                additionalData4: ["Documentacion de politicas y procedimientos", "Informes de seguimiento", "Resultados de revisiones"]
+            }
+        };
+        const checkbox1 = document.getElementById("checkbox1");
+        const checkbox2 = document.getElementById("checkbox2");
+        const checkbox3 = document.getElementById("checkbox3");
+        const checkbox4 = document.getElementById("checkbox4");
+        const dynamicCheckboxes = document.getElementById("dynamicCheckboxes");
+        const resultsTableBody = document.getElementById("resultsTableBody");
+
+        checkbox1.addEventListener("change", showDynamicCheckboxes);
+        checkbox2.addEventListener("change", showDynamicCheckboxes);
+        checkbox3.addEventListener("change", showDynamicCheckboxes);
+        checkbox4.addEventListener("change", showDynamicCheckboxes);
+
+        function showDynamicCheckboxes() {
+            dynamicCheckboxes.style.display = "none";
+            resultsTableBody.innerHTML = "";
+
+            const checkboxes = [checkbox1, checkbox2, checkbox3, checkbox4];
+            const selectedCheckboxes = checkboxes.filter(checkbox => checkbox.checked);
+
+            if (selectedCheckboxes.length > 0) {
+                dynamicCheckboxes.innerHTML = "";
+
+                selectedCheckboxes.forEach(checkbox => {
+                    const optionsContainer = document.createElement("div");
+
+                    options[checkbox.id].forEach((optionName, i) => {
+                        const optionCheckbox = document.createElement("input");
+                        optionCheckbox.type = "checkbox";
+                        optionCheckbox.id = `${checkbox.id}-option${i}`;
+                        optionCheckbox.name = `${checkbox.id}-option${i}`;
+
+
+                        const optionLabel = document.createElement("label");
+                        optionLabel.htmlFor = `${checkbox.id}-option${i}`;
+                        optionLabel.textContent = optionName;
+
+                        optionsContainer.appendChild(optionCheckbox);
+                        optionsContainer.appendChild(optionLabel);
+                        optionsContainer.appendChild(document.createElement("br"));
+                    });
+
+                    dynamicCheckboxes.appendChild(optionsContainer);
+                });
+
+                dynamicCheckboxes.style.display = "block";
+            }
+        }
+
+        document.addEventListener("change", updateResultsTable);
+
+        function updateResultsTable() {
+            resultsTableBody.innerHTML = "";
+
+            const checkboxes = [checkbox1, checkbox2, checkbox3, checkbox4];
+            const selectedCheckboxes = checkboxes.filter(checkbox => checkbox.checked);
+
+            selectedCheckboxes.forEach(checkbox => {
+                const options = dynamicCheckboxes.querySelectorAll(`input[name^="${checkbox.id}-option"]:checked`);
+                options.forEach(option => {
+                    const selection = checkbox.nextElementSibling.textContent;
+                    const optionText = option.nextElementSibling.textContent;
+                    const dataKey = `${option.id}`;
+
+                    if (optionsData[dataKey]) { // Verificar si la clave existe en optionsData
+                        const additionalData1 = optionsData[dataKey].additionalData1.map(item => `${item}`).join("<br>");
+                        const additionalData1List = `${additionalData1.replace(/<br>/g, "</li><li>")}`;
+                        const additionalData2 = optionsData[dataKey].additionalData2.map(item => `${item}`).join("<br>");
+                        const additionalData2List = `${additionalData2.replace(/<br>/g, "</li><li>")}`;
+                        const additionalData3 = optionsData[dataKey].additionalData3.map(item => `${item}`).join("<br>");
+                        const additionalData3List = `${additionalData3.replace(/<br>/g, "</li><li>")}`;
+                        const additionalData4 = optionsData[dataKey].additionalData4.map(item => `${item}`).join("<br>");
+                        const additionalData4List = `${additionalData4.replace(/<br>/g, "</li><li>")}`;
+                        const newRow = document.createElement("tr");
+
+                        const selectionCell = document.createElement("td");
+                        selectionCell.textContent = selection;
+                        newRow.appendChild(selectionCell);
+
+                        const optionCell = document.createElement("td");
+                        optionCell.textContent = optionText;
+                        newRow.appendChild(optionCell);
+
+                        const additionalData1Cell = document.createElement("td");
+                        additionalData1Cell.innerHTML = `<ul>${additionalData1List}</ul>`;
+                        newRow.appendChild(additionalData1Cell);
+
+                        const additionalData2Cell = document.createElement("td");
+                        additionalData2Cell.innerHTML = `<ul>${additionalData2List}</ul>`;
+                        newRow.appendChild(additionalData2Cell);
+
+                        const additionalData3Cell = document.createElement("td");
+                        additionalData3Cell.innerHTML = `<ul>${additionalData3List}</ul>`;
+                        newRow.appendChild(additionalData3Cell);
+
+                        const additionalData4Cell = document.createElement("td");
+                        additionalData4Cell.innerHTML = `<ul>${additionalData4List}</ul>`;
+                        newRow.appendChild(additionalData4Cell);
+
+                        resultsTableBody.appendChild(newRow);
+                    }
+                });
+            });
+        }
+
+    </script>
+</body>
+</html>
